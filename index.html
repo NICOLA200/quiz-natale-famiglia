@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz di Natale</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f3f3;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .quiz-container {
+      display: none;
+      margin-top: 50px;
+    }
+    #start-btn {
+      background-color: #ff6347;
+      color: white;
+      font-size: 20px;
+      padding: 15px 30px;
+      border: none;
+      cursor: pointer;
+    }
+    .question {
+      font-size: 24px;
+      margin: 20px;
+    }
+    .answer-btn {
+      display: block;
+      width: 200px;
+      margin: 20px auto;
+      padding: 10px;
+      font-size: 18px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .answer-btn:hover {
+      opacity: 0.8;
+    }
+    #red { background-color: red; color: white; }
+    #blue { background-color: blue; color: white; }
+    #yellow { background-color: yellow; color: black; }
+    #green { background-color: green; color: white; }
+    #timer {
+      font-size: 30px;
+      font-weight: bold;
+    }
+    #result {
+      font-size: 24px;
+      margin-top: 20px;
+    }
+    .result-comment {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .hide {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="start-screen">
+    <h1>Quiz di Natale</h1>
+    <button id="start-btn">Inizia il quiz</button>
+  </div>
+
+  <div class="quiz-container" id="quiz-container">
+    <h2 id="timer">20</h2>
+    <div id="question" class="question"></div>
+    <button class="answer-btn" id="red"></button>
+    <button class="answer-btn" id="blue"></button>
+    <button class="answer-btn" id="yellow"></button>
+    <button class="answer-btn" id="green"></button>
+  </div>
+
+  <div id="result" class="hide">
+    <div id="score"></div>
+    <div id="comment" class="result-comment"></div>
+  </div>
+
+  <script>
+    const questions = [
+      { question: "Sono sempre piegata su me stessa, trasformando fogli in opere d'arte. Chi sono?", answers: ["Anna", "Luisa", "Ilaria", "Rosa"], correct: 3 },
+      { question: "Sono il re delle piastrelle e ci passo così tanto tempo che la famiglia pensa che mi sia perso. Chi sono?", answers: ["Vincenzo", "Osvaldo", "Pasquale", "Marco"], correct: 0 },
+      { question: "Non mi assomigliate, sono piccolo e faccio tutto a modo mio. Chi sono?", answers: ["Giobby", "Vincenzo", "Eduardo", "Marco"], correct: 2 },
+      { question: "Non sono mai a casa, ma vivo in un posto dove le patatine fritte sono un'arte. Chi sono?", answers: ["Mimmo", "Osvaldo", "Ilaria", "Gennaro"], correct: 1 },
+      { question: "Mi chiamate ogni volta che qualcosa non funziona, come se avessi il superpotere di risolvere tutto con un clic. Chi sono?", answers: ["Osvaldo", "Rosa", "Ilaria", "Vittorio"], correct: 3 },
+      { question: "L'anno prossimo diremo 'sì', ma intanto siamo già in pieni preparativi. Chi siamo?", answers: ["Vincenzo e Ilaria", "Gennaro e Giusy", "Anna e Marco", "Rosa e Pasquale"], correct: 1 },
+      { question: "Mi chiamate ogni volta che qualcosa fa male, come se avessi la cura per tutto. Chi sono?", answers: ["Vittorio", "Annarella", "Marco", "Mimmo"], correct: 2 },
+      { question: "Rompo libri svelando disegni nascosti, come se costruissi opere d'arte invisibili. Chi sono?", answers: ["Giusy", "Luisa", "Mimmo", "Anna"], correct: 3 },
+      { question: "Mi trovi a girovagare tra i tavoli, ma il mio sorriso è più raro di un'unicorno. Chi sono?", answers: ["Gennaro", "Ilaria", "Eduardo", "Giobby"], correct: 1 },
+      { question: "Riassemblo i pezzi e trasformo il vecchio in nuovo, come un alchimista della stoffa. Chi sono?", answers: ["Rosa", "Pasquale", "Luisa", "Eduardo"], correct: 2 },
+      { question: "Non sono il più piccolo e ogni giorno divento sempre più grande e curioso. Chi sono?", answers: ["Pasquale", "Vittorio", "Giobby", "Eduardo"], correct: 2 },
+      { question: "Ho due piccoli uragani, ma il più piccolo è il più tempestoso. Chi sono?", answers: ["Annarella", "Giobby", "Rosa", "Anna"], correct: 0 },
+      { question: "Ho messo la mia carriera in pausa definitiva, ma ora ho più impegni di prima. Chi sono?", answers: ["Osvaldo", "Pasquale", "Vincenzo", "Mimmo"], correct: 1 },
+      { question: "Plasmo la materia con sudore e precisione, innalzando strutture che resistono al tempo. Chi sono?", answers: ["Anna", "Mimmo", "Marco", "Luisa"], correct: 1 }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timer;
+
+    const startButton = document.getElementById("start-btn");
+    const quizContainer = document.getElementById("quiz-container");
+    const timerElement = document.getElementById("timer");
+    const questionElement = document.getElementById("question");
+    const answerButtons = document.querySelectorAll(".answer-btn");
+    const resultScreen = document.getElementById("result");
+    const scoreElement = document.getElementById("score");
+    const commentElement = document.getElementById("comment");
+
+    startButton.addEventListener("click", startQuiz);
+
+    function startQuiz() {
+      document.getElementById("start-screen").style.display = "none";  // Nasconde la schermata iniziale
+      quizContainer.style.display = "block";  // Mostra il quiz
+      showQuestion();
+    }
+
+    function startTimer() {
+      let timeLeft = 20;
+      timerElement.textContent = timeLeft;
+
+      timer = setInterval(function () {
+        timeLeft--;
+        timerElement.textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          nextQuestion();
+        }
+      }, 1000);
+    }
+
+    function showQuestion() {
+      const question = questions[currentQuestionIndex];
+      questionElement.textContent = question.question;
+
+      answerButtons[0].textContent = question.answers[0];
+      answerButtons[1].textContent = question.answers[1];
+      answerButtons[2].textContent = question.answers[2];
+      answerButtons[3].textContent = question.answers[3];
+
+      answerButtons.forEach((button, index) => {
+        button.style.backgroundColor = ["red", "blue", "yellow", "green"][index];
+        button.onclick = () => handleAnswer(index);
+      });
+
+      startTimer();
+    }
+
+    function handleAnswer(selectedIndex) {
+      const correctIndex = questions[currentQuestionIndex].correct;
+      if (selectedIndex === correctIndex) {
+        score++;
+      }
+      clearInterval(timer);
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      quizContainer.style.display = "none";
+      resultScreen.style.display = "block";
+      scoreElement.textContent = `Punteggio: ${score}/14`;
+
+      if (score >= 0 && score <= 5) {
+        commentElement.innerHTML = "<b>Se fosse un esame, la carta igienica sarebbe più utile del tuo risultato.</b>";
+      } else if (score >= 6 && score <= 8) {
+        commentElement.textContent = "Hai fatto del tuo meglio… ma il tuo meglio non è un granché.";
+      } else if (score >= 9 && score <= 11) {
+        commentElement.textContent = "Quasi un genio! Ti mancava solo un pizzico di fortuna.";
+      } else if (score >= 12 && score <= 13) {
+        commentElement.textContent = "Quasi perfetto… peccato per quei momenti di blackout mentale.";
+      } else if (score === 14) {
+        commentElement.textContent = "Hai raggiunto il massimo! Gli altri possono solo inchinarsi davanti a te.";
+      }
+    }
+  </script>
+
+</body>
+</html>
